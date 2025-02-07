@@ -20,16 +20,18 @@ return new class extends Migration
             $table->string('email', 50)->unique()->comment = "電子信箱";
             $table->timestamp('email_verified_at')->nullable()->comment = "電子信箱驗證";
 
-            $table->integer('user_type')->default(2)->comment = "使用者類別(1:admin,2:一般會員)";
+            $table->integer('user_type')->default(2)->comment = "使用者類別(1:admin,2:管理員,3:一般會員)";
             $table->boolean('user_status')->default(0)->comment = "帳號狀態(false:停用, true:啟用)";
 
-            $table->integer('area_type')->default(1)->comment = "使用者所屬區域(1:大林, 2:桃園, 3:其他)";
+            $table->integer('area_type')->default(1)->comment = "使用者所屬區域(1:大林廠、2:桃園廠、3:大林與桃園廠)";
             $table->integer('mail_type')->default(1)->comment = "使用者是否發送Email(1.發信, 2:不發信)";
 
             $table->boolean('resetpwd')->default(0)->comment = "是否為忘記密碼重置(false:否, true:是)";
             $table->boolean('is_lock')->default(0)->comment = "帳號是否鎖住(false:否, true:是)";
             $table->integer('pw_err_count')->default(0)->comment = "登入錯誤次數";
             $table->timestamp('pw_err_date')->nullable()->comment = "登入錯誤最後日期";
+            $table->timestamp('user_open_at')->nullable()->comment = "管理員開通帳號時間";
+            $table->integer('open_user_uid')->nullable()->comment = "開通帳號之管理員編號";
 
             $table->string('tick')->nullable()->comment = "email tick";
             
