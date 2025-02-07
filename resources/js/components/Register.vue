@@ -1,5 +1,114 @@
 <template>
-    <div class="container h-100">
+    <v-layout class="h-100 content-height">
+        <v-form action="javascript:void(0)" @submit="register" method="post" ref="RegisterForm" class="w-100">
+            <div class="w-100 h-100 d-flex align-start pt-sm-8">
+                <v-row justify="center" class="pa-0 ma-0 mt-4 mt-sm-0 mb-sm-16">
+                    <v-col cols="12" md="8" class="text-center">
+                        <h1 class="text-sm-h4 font-weight-bold">帳號註冊</h1>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <v-row>
+                        <v-col cols="12">
+                            <v-text-field
+                            v-model="user.name"
+                            variant="outlined"
+                            class="rwd-text-field"
+                            hide-details="auto"
+                            :rules="[value => !!value || '此欄位必填']"
+                            >
+                            <template v-slot:label>
+                                請輸入姓名
+                            </template>
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                            <v-text-field
+                            v-model="user.email"
+                            variant="outlined"
+                            class="rwd-text-field"
+                            hide-details="auto"
+                            :rules="[value => !!value || '此欄位必填', val => /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(val) || 'email格式不符']"
+                            >
+                            <template v-slot:label>
+                                請輸入Email帳號
+                            </template>
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                            <v-text-field
+                            v-model="user.password"
+                            :type="showPwd ? 'text' : 'password'"
+                            variant="outlined"
+                            hide-details="auto"
+                            :rules="[value => !!value || '此欄位必填']"
+                            class="rwd-text-field"
+                            >
+                                <template v-slot:append-inner>
+                                <v-icon class="text-sm-h5" @click="showPwd = !showPwd">
+                                    {{ showPwd ? 'mdi-eye' : 'mdi-eye-off' }}
+                                </v-icon>
+                                </template>
+                            <template v-slot:label>
+                                請輸入密碼
+                            </template>
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                            <v-text-field
+                            v-model="user.passwordcheck"
+                            :type="showPwdCheck ? 'text' : 'password'"
+                            variant="outlined"
+                            hide-details="auto"
+                            :rules="[value => !!value || '此欄位必填', value => value===user.password || '密碼輸入不相符']"
+                            class="rwd-text-field"
+                            >
+                                <template v-slot:append-inner>
+                                <v-icon class="text-sm-h5" @click="showPwdCheck = !showPwdCheck">
+                                    {{ showPwdCheck ? 'mdi-eye' : 'mdi-eye-off' }}
+                                </v-icon>
+                                </template>
+                                <template v-slot:label>
+                                請再次輸入密碼
+                                </template>
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                            <v-radio-group hide-details="auto" color="teal-darken-4" v-model="user.area_type" class="text-sm-h5" inline :rules="[value => !!value || '此欄位必選']">
+                            <div class="d-flex align-center text-black text-h6 text-sm-h6"><strong>所屬區域</strong></div>&nbsp;
+                            <v-radio value="1">
+                                <template v-slot:label>
+                                <div class="text-h6 text-sm-h6 px-sm-2"><strong class="text-green-darken-2 text-opacity">桃園廠</strong></div>
+                                </template>
+                            </v-radio>
+                            <v-radio value="2">
+                                <template v-slot:label>
+                                <div class="text-h6 text-sm-h6 px-sm-2"><strong class="text-indigo-accent-4">大林廠</strong></div>
+                                </template>
+                            </v-radio>
+                            <v-radio value="3">
+                                <template v-slot:label>
+                                <div class="text-h6 text-sm-h6 px-sm-2"><strong class="text-deep-purple-accent-4">大林廠與桃園廠</strong></div>
+                                </template>
+                            </v-radio>
+                            </v-radio-group>
+                        </v-col>
+                        </v-row>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <div class="text-white text-decoration-none">
+                        <!-- <button type="submit" :disabled="processing" class="btn btn-primary btn-block">
+                            {{ processing ? "Please wait" : "Register" }}
+                        </button> -->
+                        <v-btn prepend-icon="mdi-account-plus" type="submit" :disabled="processing" class="text-white font-weight-black text-h6 text-sm-h5 smallup-btn-h smallup-btn-radius"
+                            color="light-blue-darken-2" variant="flat" size="x-large" block>{{ processing ? "Please wait" : "註冊" }}
+                        </v-btn>
+                        </div>
+                    </v-col>
+                </v-row>
+            </div>
+        </v-form>
+    </v-layout>
+    <!-- <div class="container h-100">
         <div class="row h-100 align-items-center">
             <div class="col-12 col-md-6 offset-md-3">
                 <div class="card shadow sm">
@@ -43,7 +152,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 </template>
 
 <script>
@@ -56,14 +165,22 @@ export default {
                 name:"",
                 email:"",
                 password:"",
-                c_password:""
+                passwordcheck:"",
+                area_type:null
+                // name:"",
+                // email:"",
+                // password:"",
+                // c_password:""
             },
+            showPwd:false,
+            showPwdCheck:false,
             validationErrors:{},
             processing:false
         }
     },
     methods:{
         async register(){
+            // console.log(this.user)
             this.processing = true
             await axios.post('/api/register',this.user).then(response=>{
                 localStorage.clear()

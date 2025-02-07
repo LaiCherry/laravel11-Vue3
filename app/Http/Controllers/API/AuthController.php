@@ -20,6 +20,18 @@ class AuthController extends BaseController
         return $check;
     }
 
+    /** 寄送Email通知系統管理員進行{{$uid}}帳號開通 */
+    public function OpenUserEmailAlert($uid,$userObj){
+        try{
+            $SendEmailController = new SendEmailController();
+            $SendEmailController->OpenEmailAlert($uid,$userObj);
+            return true;
+        }catch(\Exception $e){
+            return false;
+        }
+    }
+
+    /** 註冊之Email驗證完成與否 */
     public function UserOpen(Request $request){
         try{
             $success = [];
@@ -40,34 +52,35 @@ class AuthController extends BaseController
                 $user = User::where('id', '=', $input['uid'])->where('tick','=',$input['tick'])->first();
                 if($user){
                     // dd($user);
-                    if($user->user_status) {
+                    if($user->email_verified_at) {
                         // $success['isOpen'] = true;
-                        $success['memo'] = '帳號已於'.explode(' ', $user->email_verified_at)[0].'開通! 系統將跳轉至登入頁，請直接登入。';  
+                        $success['memo'] = '帳號已於'.explode(' ', $user->email_verified_at)[0].'完成Email信件驗證! 尚待系統管理員開通帳號....';  
+                        return redirect('/')->with(['alert'=>$success['memo'],'directurl'=>'/']);
+                    }else if($user->user_status) {
+                        $success['memo'] = '帳號已於'.explode(' ', $user->user_open_at)[0].'完成帳號開通! 系統將跳轉至登入頁，請進行登入。';  
                         return redirect('/')->with(['alert'=>$success['memo'],'directurl'=>'/login']);
                     }else {
                         $user_open = User::where('id', '=', $input['uid'])->where('tick','=', $input['tick'])
-                                    ->update([
-                                        'user_status' => true,
-                                        'email_verified_at' => now()
-                                    ]);
+                                    ->update([ 'email_verified_at' => now() ]);
                         if($user_open) {
-                            // $success['isOpen'] = true;
-                            $success['memo'] = '帳號開通完成! 系統將跳轉至登入頁，請登入。';
-                            return redirect('/')->with(['alert'=>$success['memo'],'directurl'=>'/login']);
-                        }else return redirect('/')->with(['alert'=>'開通失敗! 請洽系統管理員!.','directurl'=>'/']);
+                            if($this->OpenUserEmailAlert($input['uid'],$user)){ // 通知管理員執行帳號開通
+                                $success['memo'] = 'Email信件完成驗證! 後續將由系統管理員進行帳號開通，開通完成將進行Email通知...';
+                                return redirect('/')->with(['alert'=>$success['memo'],'directurl'=>'/']);
+                            }else return redirect('/')->with(['alert'=>'通知系統管理員進行帳號開通失敗! 請洽系統管理員!.','directurl'=>'/']);
+                        }else return redirect('/')->with(['alert'=>'Email信件驗證失敗! 請洽系統管理員!.','directurl'=>'/']);
                         // }else return $this->sendError('開通失敗! 請洽系統管理員!.', ['error'=>'開通失敗! 請洽系統管理員!']);
                     }
                 }
-                else { return redirect('/')->with(['alert'=>'開通失敗! 請洽系統管理員!!.','directurl'=>'/']); }
+                else { return redirect('/')->with(['alert'=>'Email信件驗證失敗! 請洽系統管理員!!.','directurl'=>'/']); }
                 // else{ return $this->sendError('開通失敗! 請洽系統管理員!!.', ['error'=>'開通失敗! 請洽系統管理員!!']); }
             }
             else {
-                return redirect('/')->with(['alert'=>'開通失敗! 請洽系統管理員!!!.','directurl'=>'/']);
+                return redirect('/')->with(['alert'=>'Email信件驗證失敗! 請洽系統管理員!!!.','directurl'=>'/']);
                 // return $this->sendError('開通失敗! 請洽系統管理員!!!.', ['error'=>'開通失敗! 請洽系統管理員!!!']);
             }
         }
         catch (\Exception $e) {
-            return redirect('/')->with(['alert'=>'開通失敗!! 請洽系統管理員!.','directurl'=>'/']);
+            return redirect('/')->with(['alert'=>'Email信件驗證失敗!! 請洽系統管理員!.','directurl'=>'/']);
             // return $this->sendError('開通失敗!! 請洽系統管理員!.', ['error'=>'開通失敗!! 請洽系統管理員!']);
         }
     }
@@ -85,7 +98,8 @@ class AuthController extends BaseController
             'name' => 'required',
             'email' => 'required|email',
             'password' => 'required',
-            'c_password' => 'required|same:password',
+            'passwordcheck' => 'required|same:password',
+            'area_type' => 'required'
         ]);
 
         if($validator->fails()){
@@ -99,7 +113,8 @@ class AuthController extends BaseController
             else{
                 $input = $request->all();
                 $input['password'] = bcrypt($input['password']);
-                $input['account'] = trim($input['name']);
+                $input['account'] = explode("@",$input['email'])[0];
+                // $input['account'] = trim($input['name']);
                 $input['tick'] = intval(date("Ymd")) . $date->getTimestamp() . rand(77777,88888);
                 // dd($input);
                 $user = User::create($input);
