@@ -4,6 +4,7 @@ import { createWebHistory, createRouter } from 'vue-router'
 /* Guest Component */
 const Login = () => import('@/components/Login.vue')
 const Register = () => import('@/components/Register.vue')
+const forgetPWD = () => import('@/components/ForgetPassword.vue')
 /* Guest Component */
 
 /* Layouts */
@@ -33,6 +34,15 @@ const routes = [
         meta: {
             middleware: "guest",
             title: `Register`
+        }
+    },
+    {
+        name: "forgetPWD",
+        path: "/forgetPWD",
+        component: forgetPWD,
+        meta: {
+            middleware: "guest",
+            title: `ForgetPassword`
         }
     },
     {

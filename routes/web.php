@@ -19,6 +19,8 @@ Route::get('/user12', function (Request $request) {
 })->middleware('auth');
 
 Route::get('/register/check', [AuthController::class, 'UserOpen']);
+Route::post('/SendVcode', [AuthController::class, 'SendVcode']);
+Route::post('/SendFpassword', [AuthController::class, 'SendFpassword']);
 
 Route::post('/aaa/login', [AuthController::class, 'login']);
 Route::get('/aaa/login', [AuthController::class, 'userget']);

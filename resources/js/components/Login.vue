@@ -29,6 +29,7 @@
                             </div>
                             <div class="col-12 text-center">
                                 <label> {{ test }}Don't have an account? <router-link :to="{name:'register'}">Register Now!</router-link></label>
+                                <label>&nbsp; or <router-link :to="{name:'forgetPWD'}">Forget Password ?</router-link></label>
                             </div>
                         </form>
                     </div>

@@ -25,7 +25,13 @@ class User extends Authenticatable
         'account',
         'tick',
         'user_open_at',
-        'open_user_uid'
+        'open_user_uid',
+        'resetpwd',
+        'area_type',
+        'user_status',
+        'pw_err_count',
+        'pw_err_date',
+        'is_lock'
     ];
 
     /**
@@ -47,7 +53,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            // 'password' => 'hashed',
         ];
     }
 }
