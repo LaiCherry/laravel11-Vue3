@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Http\Controllers\SendEmailController;
 use App\Models\User;
@@ -111,6 +112,32 @@ class AuthController extends BaseController
     }
     
     /**
+     * 驗證cloudflare turnstile captcha
+     */
+    public function verifyTurnstile(Request $request){
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string'
+        ]);
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+        $secret = config('services.turnstile.secret_key');
+        $response = Http::post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => $secret,
+            'response' => $request->input('token'),
+        ]);
+
+        $responseData = $response->json();
+
+        // 根據驗證結果返回
+        if ($responseData['success']) {
+            return response()->json(['success' => true]);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Verification failed']);
+        }
+    }
+
+    /**
      * Register api
      *
      * @return \Illuminate\Http\Response
@@ -124,7 +151,9 @@ class AuthController extends BaseController
             'email' => 'required|email',
             'password' => 'required',
             'passwordcheck' => 'required|same:password',
-            'area_type' => 'required'
+            'area_type' => 'required',
+            'turnstileToken' => 'required|string',
+            'TokenisVerified' => 'required|boolean|in:true'
         ]);
 
         if($validator->fails()){
@@ -152,8 +181,8 @@ class AuthController extends BaseController
                 return $this->sendResponse($success, '帳號建立完成!請至信箱完成確認信開通!');
             }
         }catch (\Exception $e) {
-            dd($e);
-            // return $this->sendError('註冊失敗! 請洽系統管理員!.', ['error'=>'註冊失敗! 請洽系統管理員!']);
+            // dd($e);
+            return $this->sendError('註冊失敗! 請洽系統管理員!.', ['error'=>'註冊失敗! 請洽系統管理員!']);
         }  
     }
 

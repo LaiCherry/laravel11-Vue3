@@ -16,6 +16,7 @@ Route::controller(AuthController::class)->group(function(){
     Route::post('register', 'register');
     Route::post('login', 'login');
     Route::post('logout', 'logout');
+    Route::post('verify-turnstile', 'verifyTurnstile');
     // Route::get('user1', 'usercheck');
     // Route::get('user', 'userget');
 })->middleware('auth');

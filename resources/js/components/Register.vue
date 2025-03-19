@@ -95,6 +95,11 @@
                         </v-row>
                     </v-col>
                     <v-col cols="12" md="8">
+                        <div>
+                            <vue-turnstile site-key="0x4AAAAAABBTNze_3DBbiJcX" v-model="turnstileToken" mode="non-interactive"/>
+                            <div class="font-weight-bold my-2">ToturnstileTokenken: {{ turnstileToken }}</div>
+                            <div class="font-weight-bold my-2">後端通過驗證與否: {{ TokenisVerified }}</div>
+                        </div>
                         <div class="text-white text-decoration-none">
                         <!-- <button type="submit" :disabled="processing" class="btn btn-primary btn-block">
                             {{ processing ? "Please wait" : "Register" }}
@@ -157,7 +162,9 @@
 
 <script>
 import router from '@/router'
+import VueTurnstile from 'vue-turnstile'
 export default {
+    components: { VueTurnstile },
     name:'register',
     data(){
         return {
@@ -166,28 +173,48 @@ export default {
                 email:"",
                 password:"",
                 passwordcheck:"",
-                area_type:null
-                // name:"",
-                // email:"",
-                // password:"",
-                // c_password:""
+                area_type:null,
+                turnstileToken:"",
+                TokenisVerified:false
             },
             showPwd:false,
             showPwdCheck:false,
             validationErrors:{},
-            processing:false
+            processing:false,
+            turnstileToken: '',
+            TokenisVerified: false
+        }
+    },
+    watch: {
+        async turnstileToken (val) {
+            this.user.turnstileToken = val
+            this.TokenisVerified = false
+            if (val) {
+               try {
+                    const response = await axios.post('/api/verify-turnstile', {
+                        token: val
+                    });
+
+                    if (response.data.success) {
+                        this.TokenisVerified = true;
+                    } else {
+                        this.TokenisVerified = false;
+                        alert('Verification failed');
+                    }
+                } catch (error) {
+                    console.error('Error during Turnstile verification:', error);
+                    alert('Error verifying Turnstile');
+                } 
+            }
         }
     },
     methods:{
         async register(){
-            // console.log(this.user)
             this.processing = true
             await axios.post('/api/register',this.user).then(response=>{
                 localStorage.clear()
                 this.validationErrors = {}
                 alert(response.data.message)
-                // localStorage.setItem('user',JSON.stringify(response.data))
-                // router.push({name:'dashboard'})
             }).catch(({response})=>{
                 if(response.status===422){
                     this.validationErrors = response.data.errors
@@ -198,7 +225,7 @@ export default {
             }).finally(()=>{
                 this.processing = false
             })
-        }
+        },
     }
 }
 </script>
