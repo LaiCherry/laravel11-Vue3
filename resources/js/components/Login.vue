@@ -36,14 +36,19 @@
                 </div>
             </div>
         </div>
+        <div>
+            <LargeFileUploader />
+        </div>
     </div>
 </template>
 
 <script>
 import router from '@/router'
 import store from "../store"
+import LargeFileUploader from "./LargeFileUploader.vue";
 export default {
     name:"login",
+    components: { LargeFileUploader },
     data(){
         return {
             auth:{
